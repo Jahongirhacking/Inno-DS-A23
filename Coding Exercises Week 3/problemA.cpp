@@ -1,72 +1,102 @@
 // Jahongir Hayitov CS-01
-// Manually created Map ADT
 #include"bits/stdc++.h"
 using namespace std;
 typedef long long ll;
 typedef unsigned long long ull;
+#define rep(i,n) for (ll i = 0; i < (n); ++i)
+
+// struct that holds key and value
+// template <typename K, typename V>
+struct element {
+    string key;
+    ll value;
+};
 
 // generic types
 template <typename K, typename V>
 // Map implementation by class
 class MapArray {
     public:
+        // capacity of the map
+        ll capacity;
+        
         // size of the map
         ll size = 0;
         
-        // the main map array
-        vector<pair<K, V>> arr;
+        // set of keys
+        vector<string> keySet;
         
-        // the unique key set pair<key, index of the key>
-        vector<pair<K, ll>> keySet;
         
-        // check if there already exists a key O(N)
-        bool has(K k, ll& index) {
-            for(ll i = 0; i<arr.size(); i++) {
-                if(arr[i].first == k) {
-                    index = i;
-                    return true;
+        
+        // main array HashTable
+        vector<list<element>> arr = {};
+        
+        // to initialize the capacity
+        MapArray(ll cap) {
+            capacity = cap;
+            // initialize empty element
+            element elem;
+            elem.key = "";
+            elem.value = 0;
+            list<element> empty = {elem};
+            rep(i, capacity) {
+                arr.push_back(empty);
+            }
+        }
+        
+        // hash functio to manage data
+        ll hashFunction(string k) {
+            ll sum = 0;
+            for(char i : k) {
+                sum += i;
+            }
+            return (sum % capacity);
+        }
+        
+        // put method
+        void put(K k, V v) {
+            // create element
+            element el;
+            el.key = k;
+            el.value = v;
+            // according to hashfunction's hashcode
+            ll hashcode = hashFunction(el.key);
+            size++;
+            //if element already exists
+            for(element &i : arr[hashcode]) {
+                if(i.key == k) {
+                    i.value++;
+                    return;
                 }
+            }
+            // push new element
+            arr[hashcode].push_front(el);
+            keySet.push_back(el.key);
+        }
+        
+        // get method
+        element get(K k) {
+            // according to hashfunction's hashcode
+            for(element i : arr[hashFunction(k)]) {
+                if(i.key == k) return i;
+            }
+            
+            // initialize empty element
+            element elem;
+            elem.key = "";
+            elem.value = 0;
+            return elem;
+        }
+        
+        // has method
+        bool has(K k) {
+            // according to hashfunction's hashcode
+            for(element i : arr[hashFunction(k)]) {
+                if(i.key == k) return true;
             }
             return false;
         }
         
-        // put method
-        void put(pair<K, V> e, ll index) {
-            // first check if there already exists a key
-            if(index != -1){
-                // update the value
-                arr[index].second = e.second;
-            } else {
-                // create new element
-                arr.push_back(e);
-                keySet.push_back({ e.first, arr.size()-1 });
-                size++;
-            } 
-        }
-        
-        // get method
-        V get(K k, ll index) {
-            return arr[index].second;
-        }
-        
-        // remove the element by its key
-        void removeElem(K k) {
-            // extra vector to hold data
-            vector<pair<K, V>> temp;
-            for(auto i : arr) {
-                if(i.first != k) temp.push_back(i);
-            }
-            // exchange values
-            arr = temp;
-            temp.clear();
-        }
-        
-        // for printing all values
-        void all() {
-            for(pair<K, V> i : arr) cout<<i.first<<" "<<i.second<<endl;
-        }
-        
-        // is empty or not
         bool isEmpty() {
             return !size;
         }
@@ -85,36 +115,24 @@ int main() {
     // number of words
     cin>>n;
     // wordMap is a manual Map ADT
-    MapArray<string, ll>* wordMap = new MapArray<string, ll>();
+    MapArray<string, ll>* wordMap = new MapArray<string, ll>(n);
     while(n--) {
         cin>>word;
-        if(wordMap -> has(word, index)) {
-            // if we already have key, then increment value 
-            wordMap -> put({ word, (wordMap -> get(word, index)) + 1 }, index);
-        } else {
-            // if we don't create new pair
-            wordMap -> put({ word, 1 }, -1);
-        }
+        wordMap -> put(word, 1);
     }
     
     // create struct element to make sort
-    vector<wordFreq> arr;
-    for(pair<string, ll> i : wordMap -> keySet) {
-        wordFreq wordObj;
-        // word value
-        wordObj.word = (wordMap -> arr)[i.second].first;
-        // word frequency count
-        wordObj.frequency = (wordMap -> arr)[i.second].second;
-        // push to the vector
-        arr.push_back(wordObj);
+    vector<element> arr;
+    for(string i: (wordMap -> keySet)) {
+        arr.push_back(wordMap -> get(i));
     }
     
     // Sorting algorithm using INSERTION SORT
     for(int i=1; i<arr.size(); i++) {
         int j = i;
         // TODO: first frequency and if equal, next lexicographic
-        while(j!=0 && (arr[j-1].frequency < arr[j].frequency ||
-        arr[j-1].frequency == arr[j].frequency && arr[j-1].word > arr[j].word)) {
+        while(j!=0 && (arr[j-1].value < arr[j].value ||
+        arr[j-1].value == arr[j].value && arr[j-1].key > arr[j].key)) {
             swap(arr[j], arr[j-1]);
             j--;
         }
@@ -122,7 +140,7 @@ int main() {
     
     // output
     for(auto i:arr) {
-        cout<<i.word<<" "<<i.frequency<<endl;
+        cout<<i.key<<" "<<i.value<<endl;
     }
     return 0;
 }

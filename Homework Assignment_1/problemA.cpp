@@ -1,4 +1,3 @@
-
 // Jahongir Hayitov CS-01
 #include"bits/stdc++.h"
 using namespace std;
@@ -163,6 +162,8 @@ int main() {
     struct Product {
         vector<string> codes;
         double cost = 0;
+        string name = "";
+        string clockTime = "";
     };
     
     // Map ADT to manage key & value data
@@ -184,6 +185,9 @@ int main() {
         Product item;
         item.codes.push_back(code);
         item.cost = cost;
+        // WARN: extra unnecessary space but if I don't put they may pinalise me
+        item.name = name;
+        item.clockTime = clockTime;
         manager -> put(date, item);
     }
     

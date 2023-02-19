@@ -5,83 +5,105 @@ typedef long long ll;
 typedef unsigned long long ull;
 #define rep(i,n) for (ll i = 0; i < (n); ++i)
 
-// stack implementation by static array
-template <class E>
-class StackArray {
+// our case E is struct elemenAndPosition
+template<class E>
+class Node {
 public:
-    StackArray() {
-        E empty;
-        empty.element = "";
-        data[0] = empty;
-    };
-    unsigned int size = 0;
-    // check whether it is empty or not
-    bool isEmpty(){
-        return !size;
+    // constructor
+    Node(E value) {
+        this->value = value;
+        this->next = NULL;
     }
-    // return top element of the stack
-    E top() {
-        if(size > 0)
-        {
-            return data[size];
-        }
-        // else return empty
-        E empty;
-        return empty;
+    // get the value of node
+    E getValue() {
+        return this->value;
     }
-    // push new element to top
-    void push(E element) {
-        //check if the size less than of array capacity.
-        if(size < capacity) {
-            size++;
-            data[size] = element;
-        }
-        else if(size == capacity)
-        {
-            // new capacity is old * 2.
-            int newCapacity = capacity * 2;
-            // then declare new array for copying.
-            E* copyArr = new E[newCapacity];
-            // exchange
-            for(int i =0 ; i < size ; i++ ) {
-                copyArr[i] = data[i];
-            }
-            // make old capacity = new one.
-            capacity = newCapacity;
-            // assign the new array to the array of data.
-            data = copyArr;
-            // delete copy of Array
-            delete[] copyArr;
-            //insert the element into stack.
-            size++;
-            data[size] = element;
-        }
+    // set node value
+    void setValue(E value) {
+        this->value = value;
     }
-    // pop the top element from stack
-    void pop() {
-        if(size > 0) {
-            size--;
-        }
+    // return the pointer to the next node
+    Node* getNext() {
+        return this->next;
+    }
+    // connect to the next Node
+    void setNext(Node* next) {
+        this->next = next;
     }
 private:
-    // capacity of array
-    unsigned int capacity = 1001;
-    // main static array
-    E* data = new E[capacity] ;
+    // value of the node
+    E value;
+    // pointer to the next node
+    Node* next;
 };
 
+// in our case V is struct elementAndPosition
+template<class V>
+class LinkedStack {
+public:
+    // constructor
+    LinkedStack(V elem) {
+        data = new Node<V>(elem);
+    }
+    // push method to push the element to the front
+    void push(V elem) {
+        Node<V>* addingElement = new Node<V>(elem);
+        addingElement->setNext(data);
+        // move the data pointer to the top
+        data = addingElement;
+        // increase size
+        size++;
+    }
+    // pop method to remove first node
+    void pop() {
+        Node<V>* head = data;
+        // move the data pointer to the next
+        // TODO: delete head
+        data = data->getNext();
+        head->setNext(NULL);
+        delete head;
+        // decrease size
+        size--;
+    }
+    // return the top node value
+    V top() {
+        return data->getValue();
+    }
+    // show all info about stack
+    void displayAll() {
+        Node<V>* head = data;
+        while(head != NULL) {
+            cout << head->getValue().position << " " << head->getValue().element << endl;
+            head = head->getNext();
+        }
+    }
+    // check empty or not
+    bool isEmpty() {
+        return !(this->size);
+    };
+private:
+    // size of the stack
+    int size = 0;
+    // main Linked Stack
+    Node<V>* data;
+};
+
+
 int main() {
-    string closeDelimiters[101], openDelimiters[101];
+    string closeDelimiters[100], openDelimiters[100];
     int indexOfDelim = 0;
+
     // struct which holds delimiter and its array position
     struct elementAndPosition {
         string element;
         int position;
     };
 
+    elementAndPosition empty = { element:"", position:-1 };
+
     // stack for managing delimiters
-    StackArray<elementAndPosition> *rules = new StackArray<elementAndPosition>();
-    
+    LinkedStack<elementAndPosition> *rules = new LinkedStack<elementAndPosition>(empty);
+
     int n, k;
     string open, close;
     string line;
@@ -101,31 +123,33 @@ int main() {
     int index;
     rep(i, k) {
         getline(cin, line);
+        // temporary string
         string temp = "";
+        // starting index
         index = 1;
         for(int j = 0; j < line.size(); j++) {
             // if whitespace then split
             if(line[j]==' ' || j==line.size()-1) {
                 if(j == line.size()-1) {
+                    // every iteration change temporary string
                     temp += line[j];
                 }
                 // check delimiters
                 rep(it, indexOfDelim) {
                     if(temp == openDelimiters[it]) {
                         // if open delimiter
-                        elementAndPosition elem;
-                        elem.element = temp;
-                        elem.position = it;
+                        elementAndPosition elem = {element: temp, position: it};
+                        // push to the stack
                         rules->push(elem);
                     } else if(temp == closeDelimiters[it]) {
                         // close delimiter
-                        // if this case : ()} 
+                        // if this case : ()}
                         if(rules->top().element == "") {
                             cout<<"Error in line "<<i+1<<", column "<<index
                                 <<": unexpected closing token "<<temp<<".";
                             return 0;
                         }
-                        // if this case: (} 
+                        // if this case: (}
                         if(openDelimiters[it] != rules->top().element) {
                             cout<<"Error in line "<<i+1<<", column "<<index<<": expected "
                                 <<closeDelimiters[rules->top().position]<<" but got "<<temp<<".";
@@ -150,7 +174,7 @@ int main() {
         }
     }
 
-    // if this case: ({} 
+    // if this case: ({}
     if(rules->top().element != "") {
         cout<<"Error in line "<<k<<", column "<<line.size()+2<<": expected "
             <<closeDelimiters[rules->top().position]<<" but got end of input.";

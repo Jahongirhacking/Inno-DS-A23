@@ -59,5 +59,5 @@ int main() {
     return 0;
 }
 
-// 0.5 s
+// 0.5 s.
 // Time Limit Test 54

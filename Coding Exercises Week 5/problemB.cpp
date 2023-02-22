@@ -4,6 +4,7 @@ using namespace std;
 typedef long long ll;
 typedef unsigned long long ull;
 #define rep(i,n) for (ll i = 0; i < (n); ++i)
+#define FOR(i,a,b) for(ll i = a; i <= ll(b); i++)
 
 // Dictionary check
 map<string, bool> dictionary;
@@ -18,9 +19,10 @@ bool checkWordFromDict(string& str, int index) {
     if(DP[index]) return false;
     // We take it
     DP[index] = true;
-    for (int i = 1; index+i <= str.length(); i++) {
+    FOR(i, 1, str.length()) {
         string prefixOfString = str.substr(index, i);
         // first check prefix, if it exists in dictionary
+        // WARN: I didn't use dictionary[prefixOfString]==true, it gives me ML12
         if(dictionary.count(prefixOfString)>0 && checkWordFromDict(str, index+i)) {
             // If we find the path we need to push all prefix
             result.push(prefixOfString);

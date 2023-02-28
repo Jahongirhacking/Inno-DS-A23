@@ -5,73 +5,115 @@ typedef long long ll;
 #define rep(i,n) for (ll i = 0; i < (n); ++i)
 #define FOR(i,a,b) for(ll i = a; i < ll(b); i++)
 
-vector<pair<ll, ll>> merge(vector<pair<ll, ll>> a, vector<pair<ll, ll>> b) {
-    vector<pair<ll, ll>> res;
-    ll index_a = 0, index_b = 0;
-    while(index_a < a.size() || index_b < b.size()) {
-        // WARN: focus
-        if(index_b >= b.size() || (index_a < a.size() &&
-                ( (a[index_a].first < b[index_b].first) ||
-                                   (a[index_a].first == b[index_b].first && a[index_a].second < b[index_b].second)) )) {
-            res.push_back(a[index_a++]);
+class YouPay {
+public:
+    YouPay(ll low, ll high, ll pos) {
+        this->lowVal = low;
+        this->highVal = high;
+        this->position = pos;
+    }
+    ll getLowVal() {
+        return this->lowVal;
+    }
+    ll getHighVal() {
+        return this->highVal;
+    }
+    ll getPosition() {
+        return this->position;
+    }
+private:
+    ll lowVal;
+    ll highVal;
+    ll position;
+};
+
+vector<YouPay*> countingSort(vector<YouPay*> arr, bool isLow, bool ascending) {
+    // first val, second extra info
+    vector<YouPay*> res(arr.size());
+    ll maxVal, minVal;
+    rep(i, arr.size()) {
+        // find the max and min values
+        if(isLow) {
+            if (i == 0) {
+                maxVal = arr[i]->getLowVal();
+                minVal = arr[i]->getLowVal();
+            } else if (arr[i]->getLowVal() > maxVal) {
+                maxVal = arr[i]->getLowVal();
+            } else if (arr[i]->getLowVal() < minVal) {
+                minVal = arr[i]->getLowVal();
+            }
         } else {
-            res.push_back(b[index_b++]);
+            if (i == 0) {
+                maxVal = arr[i]->getHighVal();
+                minVal = arr[i]->getHighVal();
+            } else if (arr[i]->getHighVal() > maxVal) {
+                maxVal = arr[i]->getHighVal();
+            } else if (arr[i]->getHighVal() < minVal) {
+                minVal = arr[i]->getHighVal();
+            }
         }
     }
+    // create counting array
+    vector<pair<ll, ll>> counting;
+    for(ll i = minVal; i<=maxVal; i++) {
+        counting.push_back({i, 0});
+    }
+    // count the elements
+    for(YouPay* num : arr) {
+        if(isLow) {
+            if (ascending) counting[num->getLowVal() - minVal].second++;
+            else counting[maxVal - num->getLowVal()].second++;
+        } else {
+            if(ascending) counting[num->getHighVal()-minVal].second++;
+            else counting[maxVal - num->getHighVal()].second++;
+        }
+    }
+    
+    for(ll i=1; i<counting.size(); i++) {
+        counting[i].second += counting[i-1].second;
+    }
+    // newCounting for determining the elements' start positions
+    vector<pair<ll,ll>> newCounting = counting;
+    if(ascending) newCounting[0].first = minVal;
+    else newCounting[0].first = maxVal;
+    newCounting[0].second = 0;
+    for(ll i=0; i<counting.size()-1; i++) {
+        newCounting[i+1].second = counting[i].second;
+    }
+
+    // Put element in the right position
+    for(YouPay* elem : arr) {
+        if(isLow) {
+            if(ascending) res[newCounting[elem->getLowVal()-minVal].second++] = elem;
+            else res[newCounting[maxVal - elem->getLowVal()].second++] = elem;
+        } else {
+            if(ascending) res[newCounting[elem->getHighVal()-minVal].second++] = elem;
+            else res[newCounting[maxVal - elem->getHighVal()].second++] = elem;
+        }
+    }
+    
     return res;
 }
 
-vector<pair<ll, ll>> mergeSort(vector<pair<ll, ll>> a) {
-    ll n = a.size();
-    // just one elem
-    if(n<=1) return a;
-    vector<pair<ll, ll>> left, right;
-    // left and right arrays to divide
-    rep(i, n/2) left.push_back(a[i]);
-    FOR(i, n/2, n) right.push_back(a[i]);
-    // F-e: a = {7, 4, 8, 3, 6, 5, 1}
-    // left = {7, 4, 8}
-    // right = {3, 6, 5, 1}
-    left = mergeSort(left);
-    right = mergeSort(right);
-    // merge({4, 7}, {1, 6})
-    // result = {1, 4, 6, 7}
-    return merge(left, right);
-}
-
-struct element {
-    vector<pair<ll, ll>> heighers;
-};
-
 int main() {
-    set<ll> uni;
-    vector<element> arr(101);
-    arr.clear();
     ll t;
     cin >> t;
+    vector<YouPay*> arr;
+    // input
     rep(i, t) {
         ll l, h;
+        // low and high costs
         cin >> l >> h;
-        uni.insert(l);
-        arr[l].heighers.push_back({h, i+1}); // heigher val and position
+        YouPay* bid = new YouPay(l, h, i+1);
+        arr.push_back(bid);
     }
-
-    vector<ll> lows;
-    for(ll low : uni) {
-        lows.push_back(low);
+    // First sort high costs in ascending order
+    arr = countingSort(arr, false, true);
+    // Then sort low-value costs in descending order
+    arr = countingSort(arr, true, false);
+    // output
+    for(YouPay* iter : arr) {
+        cout << iter->getPosition() << " ";
     }
-
-    sort(lows.begin(), lows.end());
-
-    string result = "";
-    for(ll low : lows) {
-        arr[low].heighers = mergeSort(arr[low].heighers);
-    }
-
-    // Output
-    for(ll j=lows.size()-1; j>=0; j--) {
-        for(auto iter : arr[lows[j]].heighers) {
-            cout << iter.second << " ";
-        }
-    }
+    return 0;
 }

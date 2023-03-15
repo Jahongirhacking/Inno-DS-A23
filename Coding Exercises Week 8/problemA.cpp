@@ -68,7 +68,7 @@ int main() {
         cin >> x;
         elem = new Node(x, i);
         if(i==1) {
-            // create the root
+            // create the root elem
             root = elem;
         } else {
             // put the new element to the BST

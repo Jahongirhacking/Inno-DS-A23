@@ -97,6 +97,7 @@ vector<T> mergeSort(vector<T> segments) {
     // result = {1, 4, 6, 7}
     return merge(left, right);
 }
+
 template <typename T>
 class Node {
 public:

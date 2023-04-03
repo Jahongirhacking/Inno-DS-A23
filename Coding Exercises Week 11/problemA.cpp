@@ -12,7 +12,7 @@ public:
     Node(V val) {
         this->val = val;
     }
-    // connect this node with
+    // connect this node with another node
     void connect(Node* node) {
         childsList.push_back(node);
     }

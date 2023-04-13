@@ -1,3 +1,5 @@
+// Jahongir Hayitov CS-01
+// J.Hayitov@innopolis.university
 #include <bits/stdc++.h>
 using namespace std;
 typedef long long ll;
